@@ -60,6 +60,119 @@ void Abc_RLfLOGetNumNodesAndLevels( Abc_Frame_t * pAbc, int * pNumNodes, int * p
         *pNumLevels = Abc_NtkLevel(pNtk);
 }
 
+void Abc_RLfLOPrintNodeIds( Abc_Frame_t * pAbc )
+{
+    Abc_Ntk_t * pNtk;
+    Abc_Obj_t * pObj;
+    int i;
+    pNtk = Abc_FrameReadNtk(pAbc);
+    Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
+        if (pObj){
+            printf( "The id is: %d ; the type is: %d     ", pObj->Id, pObj->Type );
+        }
+        if (!pObj){
+            printf("got here iteration is: %d", i);
+        }
+    }
+}
+
+void Abc_RLfLOGetNumObjs( Abc_Frame_t * pAbc, int * pObjNum ){
+    Abc_Ntk_t * pNtk;
+    Abc_Obj_t * pObj;
+    int i;
+    (*pObjNum) = 0;
+    printf("Got into func \n");
+    pNtk = Abc_FrameReadNtk(pAbc);
+    if (Abc_NtkIsStrash(pNtk)){
+        printf("Ntk is Strash \n");
+    }
+    printf("got network pointer \n");
+    printf("The network type is: %d", pNtk->ntkType);
+    printf("The network func is: %d", pNtk->ntkFunc);
+    Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
+        if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
+        if (!pObj){
+            printf("pObj us null pointer! \n");
+        }
+            (*pObjNum)++;
+        }
+    }
+}
+
+void Abc_RLfLOGetObjTypes( Abc_Frame_t * pAbc, int * x)
+{
+    Abc_Ntk_t * pNtk;
+    Abc_Obj_t * pObj;
+    int i;
+    int j = 0;
+    pNtk = Abc_FrameReadNtk(pAbc);
+    Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
+        if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
+            x[j++] = pObj->Type;
+        }
+    }
+}
+
+void Abc_RLfLOGetNumEdges( Abc_Frame_t * pAbc, int * pNumEdges ){
+    Abc_Ntk_t * pNtk;
+    Abc_Obj_t * pObj;
+    int i;
+    *pNumEdges = 0;
+    pNtk = Abc_FrameReadNtk(pAbc);
+    Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
+        if (pObj){
+            *pNumEdges += Abc_ObjFaninNum(pObj);
+        }
+    }
+}
+
+void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, int * pEdges, int nEdges, int * pEdgeFeatures ){
+    Abc_Ntk_t * pNtk;
+    Abc_Obj_t * pObj;
+    int i;
+    int j;
+    int y = 0;
+    int Entry;
+    int numDisconnected = 0;
+    pNtk = Abc_FrameReadNtk(pAbc);
+    assert( Abc_NtkIsStrash(pNtk) );
+    Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
+        if (Abc_ObjFanoutNum(pObj)==0 && Abc_ObjFaninNum(pObj)==0){
+            assert( Abc_AigNodeIsConst(pObj) );
+            assert( numDisconnected==0);
+            numDisconnected++;
+        }
+        Vec_IntForEachEntry( Abc_ObjFaninVec(pObj), Entry, j ){
+            pEdges[y] = Entry - numDisconnected;
+            pEdges[nEdges + y] = pObj->Id - numDisconnected;
+            if (Abc_ObjIsNode(pObj)){
+                if (j == 0){
+                    pEdgeFeatures[y] = Abc_NtkObj(pNtk, Entry)->fCompl0;
+                } else{
+                    assert(j == 1);
+                    pEdgeFeatures[y] = Abc_NtkObj(pNtk, Entry)->fCompl1;
+                }
+            } else{
+                pEdgeFeatures[y] = 0;
+            }
+            y++;
+            assert(j <= 1);
+        }
+    }
+    assert(y==nEdges);
+}
+
+void Abc_RLfLOPrintObjNum2x(Abc_Frame_t * pAbc){
+    Abc_Ntk_t * pNtk;
+    pNtk = Abc_FrameReadNtk(pAbc);
+    printf("the Number of objects according to the Ntk_t: %d", pNtk->nObjs);
+    printf("the number of objects according to the vObjs: %d", pNtk->vObjs->nSize);
+}
+
+void Abc_RLfLOSizeofInt(size_t * size){
+    *size = sizeof(int);
+}
+
 /**Function*************************************************************
 
   Synopsis    []
