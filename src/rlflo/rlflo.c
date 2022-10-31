@@ -81,18 +81,18 @@ void Abc_RLfLOGetNumObjs( Abc_Frame_t * pAbc, int * pObjNum ){
     Abc_Obj_t * pObj;
     int i;
     (*pObjNum) = 0;
-    printf("Got into func \n");
+    // printf("Got into func \n");
     pNtk = Abc_FrameReadNtk(pAbc);
-    if (Abc_NtkIsStrash(pNtk)){
-        printf("Ntk is Strash \n");
-    }
-    printf("got network pointer \n");
-    printf("The network type is: %d", pNtk->ntkType);
-    printf("The network func is: %d", pNtk->ntkFunc);
+    // if (Abc_NtkIsStrash(pNtk)){
+    //     printf("Ntk is Strash \n");
+    // }
+    // printf("got network pointer \n");
+    // printf("The network type is: %d", pNtk->ntkType);
+    // printf("The network func is: %d", pNtk->ntkFunc);
     Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
         if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
         if (!pObj){
-            printf("pObj us null pointer! \n");
+            printf("pObj is null pointer! \n");
         }
             (*pObjNum)++;
         }
