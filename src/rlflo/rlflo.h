@@ -48,12 +48,13 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 
 extern void Abc_RLfLOMapGetAreaDelay( Abc_Frame_t * pAbc, float * pArea, float * pDelay, int fAreaOnly, int useDelayTarget, double DelayTargetArg, int nTreeCRatio, int fUseWireLoads );
+extern void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p);
 extern void Abc_RLfLOGetMaxDelayTotalArea( Abc_Frame_t * pAbc, float * pMaxDelay, float * pTotalArea, int nTreeCRatio, int fUseWireLoads, int fShowAll, int fPrintPath, int fDumpStats );
 extern void Abc_RLfLOGetNumNodesAndLevels( Abc_Frame_t * pAbc, int * pNumNodes, int * pNumLevels );
 extern void Abc_RLfLOGetNumObjs( Abc_Frame_t * pAbc, int* pObjNum );
 extern void Abc_RLfLOGetObjTypes( Abc_Frame_t * pAbc, int * x);
 extern void Abc_RLfLOGetNumEdges( Abc_Frame_t * pAbc, int * pNumEdges );
-extern void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, int * pEgdes, int nEdges, int* pEdgeFeatures);
+extern void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, long * pEgdes, int nEdges, float * pEdgeFeatures);
 extern void Abc_RLfLOPrintObjNum2x(Abc_Frame_t * pAbc);
 extern void Abc_RLfLOPrintNodeIds( Abc_Frame_t * pAbc );
 void Abc_RLfLOSizeofInt(size_t * size);

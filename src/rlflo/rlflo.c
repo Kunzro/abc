@@ -227,6 +227,36 @@ void Abc_RLfLOGetObjTypes( Abc_Frame_t * pAbc, int * x)
     }
 }
 
+void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p)
+{
+    Abc_Ntk_t * pNtk;
+    Abc_Obj_t * pObj;
+    int i;
+    int j = 0;
+    pNtk = Abc_FrameReadNtk(pAbc);
+    Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
+        if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
+            switch(pObj->Type)
+            {
+                case ABC_OBJ_PI:
+                    x[j*p] = 0;
+                    break;
+                case ABC_OBJ_PO:
+                    x[j*p] = 1;
+                    break;
+                case ABC_OBJ_NODE:
+                    x[j*p] = 2;
+                    break;
+                default:
+                    assert(false); // It has to be one of the cases!
+            }
+            x[j*p+1] = pObj->fCompl0 + pObj->fCompl1;
+            assert( j*p+1 < n*p ); // make sure we are within the array
+            j++;
+        }
+    }
+}
+
 void Abc_RLfLOGetNumEdges( Abc_Frame_t * pAbc, int * pNumEdges ){
     Abc_Ntk_t * pNtk;
     Abc_Obj_t * pObj;
@@ -240,7 +270,7 @@ void Abc_RLfLOGetNumEdges( Abc_Frame_t * pAbc, int * pNumEdges ){
     }
 }
 
-void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, int * pEdges, int nEdges, int * pEdgeFeatures ){
+void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, long * pEdges, int nEdges, float * pEdgeFeatures ){
     Abc_Ntk_t * pNtk;
     Abc_Obj_t * pObj;
     int i;
