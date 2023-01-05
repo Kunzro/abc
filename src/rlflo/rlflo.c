@@ -205,9 +205,9 @@ void Abc_RLfLOGetNumObjs( Abc_Frame_t * pAbc, int * pObjNum ){
     // printf("The network func is: %d", pNtk->ntkFunc);
     Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
         if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
-        if (!pObj){
-            printf("pObj is null pointer! \n");
-        }
+            if (!pObj){
+                printf("pObj is null pointer! \n");
+            }
             (*pObjNum)++;
         }
     }
@@ -237,18 +237,24 @@ void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p
     Vec_PtrForEachEntry(Abc_Obj_t * , pNtk->vObjs, pObj, i){
         if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
             switch(pObj->Type)
-            {
-                case ABC_OBJ_PI:
+            {   
+                case ABC_OBJ_CONST1:
                     x[j*p] = 0;
                     break;
-                case ABC_OBJ_PO:
+                case ABC_OBJ_PI:
                     x[j*p] = 1;
                     break;
-                case ABC_OBJ_NODE:
+                case ABC_OBJ_PO:
                     x[j*p] = 2;
                     break;
+                case ABC_OBJ_NODE:
+                    x[j*p] = 3;
+                    break;
                 default:
+                    printf("The Object ID is: %d", pObj->Type);
+                    x[j*p] = -pObj->Type;
                     assert(false); // It has to be one of the cases!
+                    break;
             }
             x[j*p+1] = pObj->fCompl0 + pObj->fCompl1;
             assert( j*p+1 < n*p ); // make sure we are within the array
