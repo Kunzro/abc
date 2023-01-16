@@ -333,19 +333,11 @@ void Abc_RLfLOPrintNodeIds( Abc_Frame_t * pAbc )
 
 void Abc_RLfLOGetNumObjs( Abc_Frame_t * pAbc, int * pObjNum ){
     Abc_Ntk_t * pNtk;
-    Abc_Obj_t * pObj;
-    int i;
-    (*pObjNum) = 0;
     pNtk = Abc_FrameReadNtk(pAbc);
-    assert(Abc_NtkIsStrash(pNtk)); // make sure the Network is strashed
-    Abc_NtkForEachObj(pNtk, pObj, i){
-        if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
-            if (!pObj){
-                printf("pObj is null pointer! \n");
-            }
-            (*pObjNum)++;
-        }
-    }
+    *pObjNum = Abc_NtkObjNum(pNtk);
+    if ( Abc_ObjFaninNum(Abc_NtkObj(pNtk, 0))==0 && Abc_ObjFanoutNum(Abc_NtkObj(pNtk, 0))==0 )  // don't count the const 1 node if it isn't used
+        *pObjNum -= 1;
+    return;
 }
 
 void Abc_RLfLOGetObjTypes( Abc_Frame_t * pAbc, int * x)
@@ -360,6 +352,7 @@ void Abc_RLfLOGetObjTypes( Abc_Frame_t * pAbc, int * x)
             x[j++] = pObj->Type;
         }
     }
+    return;
 }
 
 void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p)
@@ -396,6 +389,7 @@ void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p
             j++;
         }
     }
+    return;
 }
 
 void Abc_RLfLOGetNumEdges( Abc_Frame_t * pAbc, int * pNumEdges ){
@@ -409,6 +403,7 @@ void Abc_RLfLOGetNumEdges( Abc_Frame_t * pAbc, int * pNumEdges ){
             *pNumEdges += Abc_ObjFaninNum(pObj);
         }
     }
+    return;
 }
 
 void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, long * pEdges, int nEdges, float * pEdgeFeatures ){
@@ -445,6 +440,7 @@ void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, long * pEdges, int nEdges, float * p
         }
     }
     assert(y==nEdges);
+    return;
 }
 
 void Abc_RLfLOPrintObjNum2x(Abc_Frame_t * pAbc){
@@ -452,10 +448,12 @@ void Abc_RLfLOPrintObjNum2x(Abc_Frame_t * pAbc){
     pNtk = Abc_FrameReadNtk(pAbc);
     printf("the Number of objects according to the Ntk_t: %d", pNtk->nObjs);
     printf("the number of objects according to the vObjs: %d", pNtk->vObjs->nSize);
+    return;
 }
 
 void Abc_RLfLOSizeofInt(size_t * size){
     *size = sizeof(int);
+    return;
 }
 
 int Abc_RLfLONtkRewrite( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fUseZeros, int fVerbose, int fVeryVerbose, int fPlaceEnable ){
@@ -795,6 +793,7 @@ void Abc_ManResubPrint( Abc_ManRes_t * p )
     printf( "Total divisors = %8d.\n", p->nTotalDivs );
 //    printf( "Total gain     = %8d.\n", p->nTotalGain );
     printf( "Gain           = %8d. (%6.2f %%).\n", p->nNodesBeg-p->nNodesEnd, 100.0*(p->nNodesBeg-p->nNodesEnd)/p->nNodesBeg );
+    return;
 }
 
 
