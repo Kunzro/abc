@@ -443,19 +443,6 @@ void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, long * pEdges, int nEdges, float * p
     return;
 }
 
-void Abc_RLfLOPrintObjNum2x(Abc_Frame_t * pAbc){
-    Abc_Ntk_t * pNtk;
-    pNtk = Abc_FrameReadNtk(pAbc);
-    printf("the Number of objects according to the Ntk_t: %d", pNtk->nObjs);
-    printf("the number of objects according to the vObjs: %d", pNtk->vObjs->nSize);
-    return;
-}
-
-void Abc_RLfLOSizeofInt(size_t * size){
-    *size = sizeof(int);
-    return;
-}
-
 int Abc_RLfLONtkRewrite( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fUseZeros, int fVerbose, int fVeryVerbose, int fPlaceEnable ){
     Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
     Abc_Obj_t * pNode = Abc_NtkObj(pNtk, Id);
