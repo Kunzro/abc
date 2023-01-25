@@ -418,6 +418,99 @@ void Abc_RwrExpWithCut( Abc_Obj_t * pNode, Vec_Ptr_t * vLeaves )
 }
 
 
+int Abc_RLfLONtkRewrite( Abc_Ntk_t * pNtk, int Id, int fUpdateLevel, int fUseZeros, int fVerbose, int fVeryVerbose, int fPlaceEnable )
+{
+    Abc_Obj_t * pNode = Abc_NtkObj(pNtk, Id);
+    extern int Dec_GraphUpdateNetwork( Abc_Obj_t * pRoot, Dec_Graph_t * pGraph, int fUpdateLevel, int nGain );
+    Cut_Man_t * pManCut;
+    Rwr_Man_t * pManRwr;
+    Dec_Graph_t * pGraph;
+    int nGain, fCompl, RetValue = 1;
+    abctime clk, clkStart = Abc_Clock();
+
+    assert( Abc_NtkIsStrash(pNtk) );
+    // cleanup the AIG
+    Abc_AigCleanup((Abc_Aig_t *)pNtk->pManFunc);
+
+    // start the rewriting manager
+    pManRwr = Rwr_ManStart( 0 );
+    if ( pManRwr == NULL )
+        return 0;
+    // compute the reverse levels if level update is requested
+    if ( fUpdateLevel )
+        Abc_NtkStartReverseLevels( pNtk, 0 );
+    // start the cut manager
+clk = Abc_Clock();
+    pManCut = Abc_NtkStartCutManForRewrite( pNtk );
+Rwr_ManAddTimeCuts( pManRwr, Abc_Clock() - clk );
+    pNtk->pManCut = pManCut;
+
+    if ( fVeryVerbose )
+        Rwr_ScoresClean( pManRwr );
+
+    // resynthesize each node once
+    pManRwr->nNodesBeg = Abc_NtkNodeNum(pNtk);
+    if ( !Abc_NodeIsPersistant(pNode) && !(Abc_ObjFanoutNum(pNode) > 1000) )
+    {
+        // for each cut, try to resynthesize it
+        nGain = Rwr_NodeRewrite( pManRwr, pManCut, pNode, fUpdateLevel, fUseZeros, fPlaceEnable );
+        if ( nGain > 0 || (nGain == 0 && fUseZeros) )
+        {
+            // if we end up here, a rewriting step is accepted
+            // get hold of the new subgraph to be added to the AIG
+            pGraph = (Dec_Graph_t *)Rwr_ManReadDecs(pManRwr);
+            fCompl = Rwr_ManReadCompl(pManRwr);
+
+            // reset the array of the changed nodes
+            if ( fPlaceEnable )
+                Abc_AigUpdateReset( (Abc_Aig_t *)pNtk->pManFunc );
+
+            // complement the FF if needed
+            if ( fCompl ) Dec_GraphComplement( pGraph );
+    clk = Abc_Clock();
+            if ( Dec_GraphUpdateNetwork( pNode, pGraph, fUpdateLevel, nGain ) )
+            {
+    Rwr_ManAddTimeUpdate( pManRwr, Abc_Clock() - clk );
+                if ( fCompl ) Dec_GraphComplement( pGraph );
+            }else {
+                RetValue = -1;
+            }
+        }
+    }
+Rwr_ManAddTimeTotal( pManRwr, Abc_Clock() - clkStart );
+    // print stats
+    pManRwr->nNodesEnd = Abc_NtkNodeNum(pNtk);
+    if ( fVerbose )
+        Rwr_ManPrintStats( pManRwr );
+    if ( fVeryVerbose )
+        Rwr_ScoresReport( pManRwr );
+    // delete the managers
+    Rwr_ManStop( pManRwr );
+    Cut_ManStop( pManCut );
+    pNtk->pManCut = NULL;
+
+    // put the nodes into the DFS order and reassign their IDs
+    {
+    Abc_NtkReassignIds( pNtk );
+    }
+    // fix the levels
+    if ( RetValue >= 0 )
+    {
+        if ( fUpdateLevel )
+            Abc_NtkStopReverseLevels( pNtk );
+        else
+            Abc_NtkLevel( pNtk );
+        // check
+        if ( !Abc_NtkCheck( pNtk ) )
+        {
+            printf( "Abc_NtkRewrite: The network check has failed.\n" );
+            return 0;
+        }
+    }
+    return RetValue;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////

@@ -417,6 +417,86 @@ pManRef->timeTotal = Abc_Clock() - clkStart;
 }
 
 
+int Abc_RLfLONtkRefactor( Abc_Ntk_t * pNtk, int Id, int nNodeSizeMax, int nConeSizeMax, int fUpdateLevel, int fUseZeros, int fUseDcs, int fVerbose )
+{
+    Abc_Obj_t * pNode = Abc_NtkObj(pNtk, Id);
+    extern int           Dec_GraphUpdateNetwork( Abc_Obj_t * pRoot, Dec_Graph_t * pGraph, int fUpdateLevel, int nGain );
+    Abc_ManRef_t * pManRef;
+    Abc_ManCut_t * pManCut;
+    Dec_Graph_t * pFForm;
+    Vec_Ptr_t * vFanins;
+    abctime clk, clkStart = Abc_Clock();
+    int RetValue = 1;
+
+    assert( Abc_NtkIsStrash(pNtk) );
+    // cleanup the AIG
+    Abc_AigCleanup((Abc_Aig_t *)pNtk->pManFunc);
+    // start the managers
+    pManCut = Abc_NtkManCutStart( nNodeSizeMax, nConeSizeMax, 2, 1000 );
+    pManRef = Abc_NtkManRefStart( nNodeSizeMax, nConeSizeMax, fUseDcs, fVerbose );
+    pManRef->vLeaves   = Abc_NtkManCutReadCutLarge( pManCut );
+    // compute the reverse levels if level update is requested
+    if ( fUpdateLevel )
+        Abc_NtkStartReverseLevels( pNtk, 0 );
+
+    // resynthesize each node once
+    pManRef->nNodesBeg = Abc_NtkNodeNum(pNtk);
+    if ( !Abc_NodeIsPersistant(pNode) && !(Abc_ObjFanoutNum(pNode) > 1000 ) )
+    {
+        // compute a reconvergence-driven cut
+clk = Abc_Clock();
+        vFanins = Abc_NodeFindCut( pManCut, pNode, fUseDcs );
+pManRef->timeCut += Abc_Clock() - clk;
+        // evaluate this cut
+clk = Abc_Clock();
+        pFForm = Abc_NodeRefactor( pManRef, pNode, vFanins, fUpdateLevel, fUseZeros, fUseDcs, fVerbose );
+pManRef->timeRes += Abc_Clock() - clk;
+        if ( pFForm != NULL )
+        {
+
+            // acceptable replacement found, update the graph
+clk = Abc_Clock();
+            if ( !Dec_GraphUpdateNetwork( pNode, pFForm, fUpdateLevel, pManRef->nLastGain ) )
+            {
+                Dec_GraphFree( pFForm );
+                RetValue = -1;
+            }
+            else
+            {
+pManRef->timeNtk += Abc_Clock() - clk;
+                Dec_GraphFree( pFForm );
+            }
+        }
+    }
+pManRef->timeTotal = Abc_Clock() - clkStart;
+    pManRef->nNodesEnd = Abc_NtkNodeNum(pNtk);
+
+    // print statistics of the manager
+    if ( fVerbose )
+        Abc_NtkManRefPrintStats( pManRef );
+    // delete the managers
+    Abc_NtkManCutStop( pManCut );
+    Abc_NtkManRefStop( pManRef );
+    // put the nodes into the DFS order and reassign their IDs
+    Abc_NtkReassignIds( pNtk );
+    if ( RetValue != -1 )
+    {
+        // fix the levels
+        if ( fUpdateLevel )
+            Abc_NtkStopReverseLevels( pNtk );
+        else
+            Abc_NtkLevel( pNtk );
+        // check
+        if ( !Abc_NtkCheck( pNtk ) )
+        {
+            printf( "Abc_NtkRefactor: The network check has failed.\n" );
+            return 0;
+        }
+    }
+    return RetValue;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////

@@ -620,6 +620,98 @@ void Abc_NtkMarkCriticalNodes( Abc_Ntk_t * pNtk )
 }
 
 
+
+
+void Abc_RLfLOBalanceNodePerform( Abc_Ntk_t * pNtk, Abc_Obj_t * pNode, Vec_Ptr_t * vSuper, int fUpdateLevel, int fSelective )
+{
+    Abc_Aig_t * pMan = (Abc_Aig_t *)pNtk->pManFunc;
+    Abc_Obj_t * pNodeNew, * pNode1, * pNode2;
+    int i, LeftBound, RetValue;
+    assert( !Abc_ObjIsComplement(pNode) );
+    // return if the result if known
+    // if ( pNode->pCopy )
+    //     return pNodeOld->pCopy;
+    assert( Abc_ObjIsNode(pNode) );
+    // get the implication supergate
+
+    // Analog to Abc_NodeBalanceCone
+    assert( !Abc_ObjIsComplement(pNode) );
+    Vec_PtrClear( vSuper );
+    // collect the nodes in the implication supergate
+    RetValue = Abc_NodeBalanceCone_rec( pNode, vSuper, 1, 0, fSelective ); // TODO decive values
+    assert( vSuper->nSize > 1 );
+    // unmark the visited nodes
+    for ( i = 0; i < vSuper->nSize; i++ )
+        Abc_ObjRegular((Abc_Obj_t *)vSuper->pArray[i])->fMarkB = 0;
+    // if we found the node and its complement in the same implication supergate, 
+    // return empty set of nodes (meaning that we should use constant-0 node)
+    if ( RetValue == -1 )
+        vSuper->nSize = 0;
+    // vSuper = Abc_NodeBalanceCone( pNodeOld, vStorage, 0, fDuplicate, fSelective );
+    // end of Analog to Abc_NodeBalanceCone
+
+    // TODO: instead of building new Ntk replace/delete/add nodes
+    if ( vSuper->nSize == 0 )
+    { // it means that the supergate contains two nodes in the opposite polarity
+        pNodeNew = Abc_ObjNot(Abc_AigConst1(pNtk));
+        Abc_AigReplace(pMan, pNode, pNodeNew, fUpdateLevel);
+        return;
+    }
+    // // for each old node, derive the new well-balanced node
+    // for ( i = 0; i < vSuper->nSize; i++ )
+    // {
+    //     pNodeNew = Abc_NodeBalance_rec( pNtkNew, Abc_ObjRegular((Abc_Obj_t *)vSuper->pArray[i]), vStorage, Level + 1, fDuplicate, fSelective, fUpdateLevel );
+    //     vSuper->pArray[i] = Abc_ObjNotCond( pNodeNew, Abc_ObjIsComplement((Abc_Obj_t *)vSuper->pArray[i]) );
+    // }
+    if ( vSuper->nSize < 2 )
+        printf( "BUG!\n" );
+    // sort the new nodes by level in the decreasing order
+    Vec_PtrSort( vSuper, (int (*)(const void *, const void *))Abc_NodeCompareLevelsDecrease );
+    // balance the nodes
+    assert( vSuper->nSize > 1 );
+    while ( vSuper->nSize > 1 )
+    {
+        // find the left bound on the node to be paired
+        LeftBound = (!fUpdateLevel)? 0 : Abc_NodeBalanceFindLeft( vSuper );
+        // find the node that can be shared (if no such node, randomize choice)
+        Abc_NodeBalancePermute( pNtk, vSuper, LeftBound );
+        // pull out the last two nodes
+        pNode1 = (Abc_Obj_t *)Vec_PtrPop(vSuper);
+        pNode2 = (Abc_Obj_t *)Vec_PtrPop(vSuper);
+        Abc_VecObjPushUniqueOrderByLevel( vSuper, Abc_AigAnd(pMan, pNode1, pNode2) );
+    }
+    // make sure the balanced node is not assigned
+    // assert( pNode->pCopy == NULL );
+    // mark the old node with the new node
+    pNodeNew = (Abc_Obj_t *)vSuper->pArray[0];
+    if ( pNode != pNodeNew ){
+        Abc_AigReplace(pMan, pNode, pNodeNew, fUpdateLevel);
+        printf("REPLACED!");
+    }
+    vSuper->nSize = 0;
+    Abc_AigCleanup( pMan );
+    return;
+}
+
+void Abc_RLfLOBalanceNode( Abc_Ntk_t * pNtk, int Id, int fUpdateLevel, int fSelective )
+{
+    Abc_Obj_t * pNode;
+    Vec_Ptr_t * vSuper;
+    assert( Abc_NtkIsStrash(pNtk) );
+    pNode = Abc_NtkObj( pNtk, Id);
+    vSuper = Vec_PtrStart( 10 );
+
+    Abc_RLfLOBalanceNodePerform( pNtk, pNode, vSuper, fUpdateLevel , fSelective);
+    Abc_NtkReassignIds( pNtk );
+    Vec_PtrFree( vSuper );
+    if ( !Abc_NtkCheck( pNtk ) )
+    {
+        printf( "Abc_NtkBalance: The network check has failed.\n" );
+        assert ( !Abc_NtkCheck( pNtk ) ); // Ntk Check failed!
+    }
+    return;
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
