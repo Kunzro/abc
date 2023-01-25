@@ -19,6 +19,7 @@
 ***********************************************************************/
 
 #include "base/abc/abc.h"
+#include "base/main/main.h"
 
 ABC_NAMESPACE_IMPL_START
 
@@ -693,8 +694,9 @@ void Abc_RLfLOBalanceNodePerform( Abc_Ntk_t * pNtk, Abc_Obj_t * pNode, Vec_Ptr_t
     return;
 }
 
-void Abc_RLfLOBalanceNode( Abc_Ntk_t * pNtk, int Id, int fUpdateLevel, int fSelective )
+void Abc_RLfLOBalanceNode( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fSelective )
 {
+    Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
     Abc_Obj_t * pNode;
     Vec_Ptr_t * vSuper;
     assert( Abc_NtkIsStrash(pNtk) );

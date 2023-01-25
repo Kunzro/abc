@@ -21,6 +21,7 @@
 #include "base/abc/abc.h"
 #include "bool/dec/dec.h"
 #include "bool/kit/kit.h"
+#include "base/main/main.h"
 
 ABC_NAMESPACE_IMPL_START
 
@@ -417,8 +418,9 @@ pManRef->timeTotal = Abc_Clock() - clkStart;
 }
 
 
-int Abc_RLfLONtkRefactor( Abc_Ntk_t * pNtk, int Id, int nNodeSizeMax, int nConeSizeMax, int fUpdateLevel, int fUseZeros, int fUseDcs, int fVerbose )
+int Abc_RLfLONtkRefactor( Abc_Frame_t * pAbc, int Id, int nNodeSizeMax, int nConeSizeMax, int fUpdateLevel, int fUseZeros, int fUseDcs, int fVerbose )
 {
+    Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
     Abc_Obj_t * pNode = Abc_NtkObj(pNtk, Id);
     extern int           Dec_GraphUpdateNetwork( Abc_Obj_t * pRoot, Dec_Graph_t * pGraph, int fUpdateLevel, int nGain );
     Abc_ManRef_t * pManRef;

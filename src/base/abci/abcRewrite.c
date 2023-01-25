@@ -21,6 +21,7 @@
 #include "base/abc/abc.h"
 #include "opt/rwr/rwr.h"
 #include "bool/dec/dec.h"
+#include "base/main/main.h"
 
 ABC_NAMESPACE_IMPL_START
 
@@ -418,8 +419,9 @@ void Abc_RwrExpWithCut( Abc_Obj_t * pNode, Vec_Ptr_t * vLeaves )
 }
 
 
-int Abc_RLfLONtkRewrite( Abc_Ntk_t * pNtk, int Id, int fUpdateLevel, int fUseZeros, int fVerbose, int fVeryVerbose, int fPlaceEnable )
+int Abc_RLfLONtkRewrite( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fUseZeros, int fVerbose, int fVeryVerbose, int fPlaceEnable )
 {
+    Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
     Abc_Obj_t * pNode = Abc_NtkObj(pNtk, Id);
     extern int Dec_GraphUpdateNetwork( Abc_Obj_t * pRoot, Dec_Graph_t * pGraph, int fUpdateLevel, int nGain );
     Cut_Man_t * pManCut;
