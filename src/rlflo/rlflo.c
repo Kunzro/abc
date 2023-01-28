@@ -267,10 +267,15 @@ void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p
     Abc_Ntk_t * pNtk;
     Abc_Obj_t * pObj;
     int i;
+    int idshift = 0;
     int j = 0;
+    assert(p==2); // wrong shape
     pNtk = Abc_FrameReadNtk(pAbc);
+    if (Abc_ObjFanoutNum(Abc_NtkObj(pNtk, 0)) == 0 && Abc_ObjFaninNum(Abc_NtkObj(pNtk, 0)) == 0 )
+        idshift = -1; // shift everything -1 if const node is unused which always has id 0.
     Abc_NtkForEachObj(pNtk, pObj, i){
         if ( Abc_ObjFaninNum(pObj)>0 || Abc_ObjFanoutNum(pObj)>0 ){
+            assert(pObj->Id+idshift==j); // make sure the index corresponds to the ID including the idshift
             switch(pObj->Type)
             {   
                 case ABC_OBJ_CONST1:
@@ -315,32 +320,28 @@ void Abc_RLfLOGetNumEdges( Abc_Frame_t * pAbc, int * pNumEdges ){
 
 void Abc_RLfLOGetEdges( Abc_Frame_t * pAbc, long * pEdges, int nEdges, float * pEdgeFeatures ){
     Abc_Ntk_t * pNtk;
-    Abc_Obj_t * pObj;
+    Abc_Obj_t * pObj, * pFanin;
     int i;
     int j;
     int y = 0;
-    int Entry;
-    int numDisconnected = 0;
+    int idshift = 0;
     pNtk = Abc_FrameReadNtk(pAbc);
     assert( Abc_NtkIsStrash(pNtk) );
     Abc_NtkForEachObj(pNtk, pObj, i){
         if (Abc_ObjFanoutNum(pObj)==0 && Abc_ObjFaninNum(pObj)==0){
             assert( Abc_AigNodeIsConst(pObj) );
-            assert( numDisconnected==0);
-            numDisconnected++;
+            assert( idshift==0);
+            assert( i == 0 );
+            idshift--;
         }
-        Vec_IntForEachEntry( Abc_ObjFaninVec(pObj), Entry, j ){
-            pEdges[y] = Entry - numDisconnected;
-            pEdges[nEdges + y] = pObj->Id - numDisconnected;
-            if (Abc_ObjIsNode(pObj)){
-                if (j == 0){
-                    pEdgeFeatures[y] = Abc_NtkObj(pNtk, Entry)->fCompl0;
-                } else{
-                    assert(j == 1);
-                    pEdgeFeatures[y] = Abc_NtkObj(pNtk, Entry)->fCompl1;
-                }
+        Abc_ObjForEachFanin(pObj, pFanin, j){
+            pEdges[y] = pFanin->Id + idshift;
+            pEdges[nEdges + y] = pObj->Id + idshift;
+            if (j == 0){
+                pEdgeFeatures[y] = pObj->fCompl0;
             } else{
-                pEdgeFeatures[y] = 0;
+                assert(j == 1);
+                pEdgeFeatures[y] = pObj->fCompl1;
             }
             y++;
             assert(j <= 1);
