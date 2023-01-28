@@ -49,7 +49,7 @@ void Abc_RLfLOGetMaxDelayTotalArea( Abc_Frame_t * pAbc, float * pMaxDelay, float
         Abc_NtkDelete( pNtkNew );
 }
 
-void Abc_RLfLOMapGetAreaDelay( Abc_Frame_t * pAbc, float * pArea, float * pDelay, int fAreaOnly, int useDelayTarget, double DelayTargetArg, int nTreeCRatio, int fUseWireLoads, int getDelays, double * pDelays )
+void Abc_RLfLOMapGetAreaDelay( Abc_Frame_t * pAbc, float * pArea, float * pDelay, int fAreaOnly, int useDelayTarget, double DelayTargetArg, int nTreeCRatio, int fUseWireLoads, int getDelays, float * pDelays )
 {
     Abc_Ntk_t * pNtk, * pNtkRes;
     double DelayTarget;
@@ -153,19 +153,19 @@ void Abc_RLfLOMapGetAreaDelay( Abc_Frame_t * pAbc, float * pArea, float * pDelay
         {
             pDelays[pNode->Id+idshift] =  Abc_SclObjTimeMax(p, pNode);
             pFanin = Abc_ObjFanin0(pNode);
-            pDelays[pFanin->Id+idshift] = Abc_MaxDouble( pDelays[pFanin->Id+idshift], pDelays[pNode->Id+idshift] );
+            pDelays[pFanin->Id+idshift] = Abc_MaxFloat( pDelays[pFanin->Id+idshift], pDelays[pNode->Id+idshift] );
         }
         Vec_VecForEachEntryReverseReverse(Abc_Obj_t * , pNtkLevelized, pNode, i, k )
         {
             assert (Abc_ObjIsNode(pNode)); // pNode is supposed to be of type Node
             pFanin = Abc_ObjFanin0(pNode);
-            pDelays[pFanin->Id+idshift] = Abc_MaxDouble( pDelays[pNode->Id+idshift], pDelays[pFanin->Id+idshift] );
+            pDelays[pFanin->Id+idshift] = Abc_MaxFloat( pDelays[pNode->Id+idshift], pDelays[pFanin->Id+idshift] );
             pFanin = Abc_ObjFanin1(pNode);
-            pDelays[pFanin->Id+idshift] = Abc_MaxDouble( pDelays[pNode->Id+idshift], pDelays[pFanin->Id+idshift] );
+            pDelays[pFanin->Id+idshift] = Abc_MaxFloat( pDelays[pNode->Id+idshift], pDelays[pFanin->Id+idshift] );
         }
         Abc_NtkForEachPi(pNtk, pNode, i)
         {
-            pDelays[pNode->Id+idshift] = Abc_MaxDouble( pDelays[Abc_ObjFanout0(pNode)->Id+idshift], pDelays[pNode->Id+idshift] );
+            pDelays[pNode->Id+idshift] = Abc_MaxFloat( pDelays[Abc_ObjFanout0(pNode)->Id+idshift], pDelays[pNode->Id+idshift] );
         }
     }
 
@@ -262,14 +262,14 @@ void Abc_RLfLOGetObjTypes( Abc_Frame_t * pAbc, int * x)
     return;
 }
 
-void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p)
+void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * type, size_t type_size, float * num_inverted_inputs, size_t inv_size)
 {
     Abc_Ntk_t * pNtk;
     Abc_Obj_t * pObj;
     int i;
-    int idshift = 0;
     int j = 0;
-    assert(p==2); // wrong shape
+    int idshift = 0;
+    assert( type_size == inv_size ); // wrong shape
     pNtk = Abc_FrameReadNtk(pAbc);
     if (Abc_ObjFanoutNum(Abc_NtkObj(pNtk, 0)) == 0 && Abc_ObjFaninNum(Abc_NtkObj(pNtk, 0)) == 0 )
         idshift = -1; // shift everything -1 if const node is unused which always has id 0.
@@ -279,25 +279,25 @@ void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * x, size_t n, size_t p
             switch(pObj->Type)
             {   
                 case ABC_OBJ_CONST1:
-                    x[j*p] = 0;
+                    type[j] = 0;
                     break;
                 case ABC_OBJ_PI:
-                    x[j*p] = 1;
+                    type[j] = 1;
                     break;
                 case ABC_OBJ_PO:
-                    x[j*p] = 2;
+                    type[j] = 2;
                     break;
                 case ABC_OBJ_NODE:
-                    x[j*p] = 3;
+                    type[j] = 3;
                     break;
                 default:
                     printf("The Object ID is: %d", pObj->Type);
-                    x[j*p] = -pObj->Type;
+                    type[j] = -pObj->Type;
                     assert(false); // It has to be one of the cases!
                     break;
             }
-            x[j*p+1] = pObj->fCompl0 + pObj->fCompl1;
-            assert( j*p+1 < n*p ); // make sure we are within the array
+            num_inverted_inputs[j] = pObj->fCompl0 + pObj->fCompl1;
+            assert( j < type_size ); // make sure we are within the array
             j++;
         }
     }
