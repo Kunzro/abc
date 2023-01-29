@@ -262,7 +262,7 @@ void Abc_RLfLOGetObjTypes( Abc_Frame_t * pAbc, int * x)
     return;
 }
 
-void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, float * type, size_t type_size, float * num_inverted_inputs, size_t inv_size)
+void Abc_RLfLOGetNodeFeatures( Abc_Frame_t * pAbc, int32_t * type, size_t type_size, float * num_inverted_inputs, size_t inv_size)
 {
     Abc_Ntk_t * pNtk;
     Abc_Obj_t * pObj;
