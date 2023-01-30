@@ -55,7 +55,7 @@ endif
 
 ARCHFLAGS := $(ARCHFLAGS)
 
-OPTFLAGS  ?= -g -O
+OPTFLAGS  ?= -O0 -ggdb
 
 CFLAGS    += -Wall -Wno-unused-function -Wno-write-strings -Wno-sign-compare $(ARCHFLAGS)
 ifneq ($(findstring arm,$(shell uname -m)),)
@@ -175,7 +175,7 @@ DEP := $(OBJ:.o=.d)
 
 %.o: %.c
 	@echo "$(MSG_PREFIX)\`\` Compiling:" $(LOCAL_PATH)/$<
-	$(VERBOSE)$(CC) -c $(OPTFLAGS) $(INCLUDES) $(CFLAGS) $< -o $@
+	$(VERBOSE)$(CC) -c $(INCLUDES) $(CFLAGS) $(OPTFLAGS) $< -o $@
 
 %.o: %.cc
 	@echo "$(MSG_PREFIX)\`\` Compiling:" $(LOCAL_PATH)/$<
@@ -187,7 +187,7 @@ DEP := $(OBJ:.o=.d)
 
 %.d: %.c
 	@echo "$(MSG_PREFIX)\`\` Generating dependency:" $(LOCAL_PATH)/$<
-	$(VERBOSE)$(ABCSRC)/depends.sh "$(CC)" `dirname $*.c` $(OPTFLAGS) $(INCLUDES) $(CFLAGS) $< > $@
+	$(VERBOSE)$(ABCSRC)/depends.sh "$(CC)" `dirname $*.c` $(INCLUDES) $(CFLAGS) $(OPTFLAGS) $< > $@
 
 %.d: %.cc
 	@echo "$(MSG_PREFIX)\`\` Generating dependency:" $(LOCAL_PATH)/$<
