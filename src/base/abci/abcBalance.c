@@ -691,15 +691,18 @@ void Abc_RLfLOBalanceNode( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fDu
     Vec_Ptr_t * vSuper;
     assert( Abc_NtkIsStrash(pNtk) );
     pNode = Abc_NtkObj( pNtk, Id);
-    vSuper = Vec_PtrStart( 10 );
-
-    Abc_RLfLOBalanceNodePerform( pNtk, pNode, vSuper, fUpdateLevel , fDuplicate);
-    Abc_NtkReassignIds( pNtk );
-    Vec_PtrFree( vSuper );
-    if ( !Abc_NtkCheck( pNtk ) )
+    if (Abc_ObjIsNode(pNode))
     {
-        printf( "Abc_NtkBalance: The network check has failed.\n" );
-        assert ( !Abc_NtkCheck( pNtk ) ); // Ntk Check failed!
+        vSuper = Vec_PtrStart( 10 );
+
+        Abc_RLfLOBalanceNodePerform( pNtk, pNode, vSuper, fUpdateLevel , fDuplicate);
+        Abc_NtkReassignIds( pNtk );
+        Vec_PtrFree( vSuper );
+        if ( !Abc_NtkCheck( pNtk ) )
+        {
+            printf( "Abc_NtkBalance: The network check has failed.\n" );
+            assert ( !Abc_NtkCheck( pNtk ) ); // Ntk Check failed!
+        }
     }
     return;
 }
