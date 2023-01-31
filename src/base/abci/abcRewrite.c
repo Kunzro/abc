@@ -423,6 +423,8 @@ int Abc_RLfLONtkRewrite( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fUseZ
 {
     Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
     Abc_Obj_t * pNode = Abc_NtkObj(pNtk, Id);
+    if (!Abc_ObjIsNode(pNode)) // skip if it isn't a Node
+        return 1;
     extern int Dec_GraphUpdateNetwork( Abc_Obj_t * pRoot, Dec_Graph_t * pGraph, int fUpdateLevel, int nGain );
     Cut_Man_t * pManCut;
     Rwr_Man_t * pManRwr;

@@ -359,7 +359,7 @@ void Abc_RLfLONtkDesub( Abc_Frame_t * pAbc, int Id )
     pNtk = Abc_FrameReadNtk(pAbc);
     pNode = Abc_NtkObj(pNtk, Id);
     assert(Abc_NtkIsStrash(pNtk));
-    if ( Abc_ObjLevel(pNode) >=2 ){
+    if ( Abc_ObjLevel(pNode) >=2 && Abc_ObjIsNode(pNode) ){
         pMan = (Abc_Aig_t *)pNtk->pManFunc;
         assert(Abc_ObjIsNode(pNode));
         pChild = Abc_ObjChild0(pNode);
