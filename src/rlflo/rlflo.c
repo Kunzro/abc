@@ -379,7 +379,7 @@ void Abc_RLfLONtkDesub( Abc_Frame_t * pAbc, int Id )
             pABAC = Abc_AigAnd(pMan, pChild, pAC);
             pABBC = Abc_AigAnd(pMan, pChild, pBC);
             pTemp = Abc_AigAnd(pMan, pABAC, pABBC);
-            Abc_AigReplace(pMan, pNode, pTemp, 1);
+            Abc_AigReplaceSkipNew(pMan, pNode, pTemp, 1);
         }
         else
         {
