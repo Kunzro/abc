@@ -64,7 +64,7 @@ extern void Abc_RLfLONtkDesub( Abc_Frame_t * pAbc, int Id );
 extern int Abc_RLfLONtkRefactor( Abc_Frame_t * pAbc, int Id, int nNodeSizeMax, int nConeSizeMax, int fUpdateLevel, int fUseZeros, int fUseDcs, int fVerbose );
 extern int Abc_RLfLONtkRewrite( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fUseZeros, int fVerbose, int fVeryVerbose, int fPlaceEnable );
 extern int Abc_RLfLONtkResubstitute( Abc_Frame_t * pAbc, int Id ,int nCutMax, int nStepsMax, int nLevelsOdc, int fUpdateLevel, int fVerbose, int fVeryVerbose );
-extern void Abc_RLfLOBalanceNode( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fSelective);
+extern void Abc_RLfLOBalanceNode( Abc_Frame_t * pAbc, int Id, int fUpdateLevel, int fDuplicate);
 /*=== zzz.c ==========================================================*/
  
 
